@@ -49,7 +49,7 @@ class DisplayAnswers extends Component {
                     D: {answers4}
                 </div>
                 <div>
-                    Total: {allAnswers}
+                    Total: {allAnswers} of {this.props.takers}
                 </div>
                 <button onClick={this.nextQuestion}>Next question</button>
             </div>
@@ -131,10 +131,17 @@ export default class TriviaGiver extends Component {
     state = {
         isInputtingQuestion: true,
         connected: false,
+        takers: -1,
     };
 
     componentWillMount() {
         this.socket = io();
+        this.socket.emit('role', 'giver');
+
+        this.socket.on('takers', (num) => {
+            this.setState({takers: num});
+        });
+
         this.socket.on('connect', () => {
             this.setState({connected: true});
         });
@@ -159,7 +166,7 @@ export default class TriviaGiver extends Component {
             if (this.state.isInputtingQuestion) {
                 content = <InputQuestion changeToDisplayAnswers={this.changeToDisplayAnswers} socket={this.socket}/>;
             } else {
-                content = <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion} socket={this.socket}/>;
+                content = <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion} socket={this.socket} takers={this.state.takers}/>;
             }
         }
         return (<div>
