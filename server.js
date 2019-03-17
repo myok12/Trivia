@@ -33,6 +33,11 @@ io.on("connect", socket => {
         socket.broadcast.emit('trivia_question', data);
     })
 
+    socket.on('answer', data => {
+        console.log('got answer ' + JSON.stringify(data));
+        socket.broadcast.emit('answer', data);
+    })
+
     socket.emit('now', {
         message: 'zeit'
     })

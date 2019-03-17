@@ -10,8 +10,25 @@ class DisplayAnswers extends Component {
     };
 
     nextQuestion = () => {
-        this.props.answerQuestion();
+        this.props.changeToInputQuestion();
     };
+
+    componentDidMount() {
+        this.props.socket.on('answer', num => {
+            if (num === 1) {
+                this.setState(currState => ({answers1: currState.answers1+1}));
+            }
+            if (num === 2) {
+                this.setState(currState => ({answers2: currState.answers2+1}));
+            }
+            if (num === 3) {
+                this.setState(currState => ({answers3: currState.answers3+1}));
+            }
+            if (num === 4) {
+                this.setState(currState => ({answers4: currState.answers4+1}));
+            }
+        })
+    }
 
     render() {
         const {answers1, answers2, answers3, answers4} = this.state;
@@ -142,7 +159,7 @@ export default class TriviaGiver extends Component {
             if (this.state.isInputtingQuestion) {
                 content = <InputQuestion changeToDisplayAnswers={this.changeToDisplayAnswers} socket={this.socket}/>;
             } else {
-                content = <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion}/>;
+                content = <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion} socket={this.socket}/>;
             }
         }
         return (<div>

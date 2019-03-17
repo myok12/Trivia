@@ -69,7 +69,7 @@ class AnswerQuestion extends Component {
     }
 
     sendData = (number) => {
-        alert("Sending answer " + number);
+        this.props.socket.emit('answer', number);
         this.props.waitForQuestion();
     };
 
@@ -111,7 +111,7 @@ export default class TriviaTaker extends Component {
         } else {
             if (this.state.isAnswering) {
                 content = <AnswerQuestion waitForQuestion={this.waitForQuestion} q={this.state.q} a1={this.state.a1}
-                                          a2={this.state.a2} a3={this.state.a3} a4={this.state.a4}/>;
+                                          a2={this.state.a2} a3={this.state.a3} a4={this.state.a4} socket={this.socket}/>;
             } else {
                 content = <WaitForQuestion answerQuestion={this.answerQuestion} socket={this.socket}/>;
             }
