@@ -1,10 +1,11 @@
 import {Component} from "react";
+import io from 'socket.io-client';
 
 class DisplayAnswers extends Component {
     state = {
         answers1: 0,
         answers2: 0,
-        answers3: 3,
+        answers3: 0,
         answers4: 0,
     };
 
@@ -54,9 +55,6 @@ class InputQuestion extends Component {
 
         return (
             <div>
-                <h1>
-                    Trivia Giver
-                </h1>
                 <div>
                     <label htmlFor="question">Question:</label>
                     <input type="text" onChange={this.changeField("q")}
@@ -106,29 +104,52 @@ class InputQuestion extends Component {
     };
 
     sendData = () => {
-        alert("Sending q&a");
-        this.props.waitForQuestion();
+        const {q, a1, a2, a3, a4} = this.state;
+        this.props.socket.emit('trivia_question', {q, a1, a2, a3, a4});
+        this.props.changeToDisplayAnswers();
     }
 }
 
 export default class TriviaGiver extends Component {
     state = {
         isInputtingQuestion: true,
+        connected: false,
     };
 
+    componentWillMount() {
+        this.socket = io();
+        this.socket.on('connect', () => {
+            this.setState({connected: true});
+        });
+        this.socket.on('disconnect', (reason) => {
+            this.setState({connected: false});
+        });
+    }
+
     changeToDisplayAnswers = () => {
-        this.setState({isAnswering: false});
+        this.setState({isInputtingQuestion: false});
     };
 
     changeToInputQuestion = () => {
-        this.setState({isAnswering: true});
+        this.setState({isInputtingQuestion: true});
     };
 
     render() {
-        if (this.state.isInputtingQuestion) {
-            return <InputQuestion changeToDisplayAnswers={this.changeToDisplayAnswers}/>;
+        let content = "";
+        if (!this.state.connected) {
+            content = (<div>Connecting...</div>);
         } else {
-            return <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion}/>;
+            if (this.state.isInputtingQuestion) {
+                content = <InputQuestion changeToDisplayAnswers={this.changeToDisplayAnswers} socket={this.socket}/>;
+            } else {
+                content = <DisplayAnswers changeToInputQuestion={this.changeToInputQuestion}/>;
+            }
         }
+        return (<div>
+            <h1>
+                Trivia Giver
+            </h1>
+            {content}
+        </div>);
     }
 }

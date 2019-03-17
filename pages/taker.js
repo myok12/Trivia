@@ -1,10 +1,11 @@
 import {Component} from "react";
+import io from 'socket.io-client';
 
 class WaitForQuestion extends Component {
     componentDidMount() {
-        setTimeout(() => {
-            this.props.answerQuestion();
-        }, 3000);
+        this.props.socket.on('trivia_question', data => {
+            this.props.answerQuestion(data);
+        });
     }
 
     render() {
@@ -22,9 +23,6 @@ class AnswerQuestion extends Component {
         const {q = "Who was the first president", a1 = "Barack Obama", a2 = "Al Gore", a3 = "George Washington", a4 = "George W Bush"} = this.props;
         return (
             <div>
-                <h1>
-                    Trivia Taker
-                </h1>
                 <div>
                     <label htmlFor="question">Question:</label>
                     <input type="text"
@@ -85,21 +83,44 @@ class AnswerQuestion extends Component {
 export default class TriviaTaker extends Component {
     state = {
         isAnswering: false,
+        connected: false,
     };
+
+    componentWillMount() {
+        this.socket = io();
+        this.socket.on('connect', () => {
+            this.setState({connected: true});
+        });
+        this.socket.on('disconnect', (reason) => {
+            this.setState({connected: false});
+        });
+    }
 
     waitForQuestion = () => {
         this.setState({isAnswering: false});
     };
 
-    answerQuestion = () => {
-        this.setState({isAnswering: true});
+    answerQuestion = ({q, a1, a2, a3, a4}) => {
+        this.setState({isAnswering: true, q, a1, a2, a3, a4});
     };
 
     render() {
-        if (this.state.isAnswering) {
-            return <AnswerQuestion waitForQuestion={this.waitForQuestion}/>;
+        let content = "";
+        if (!this.state.connected) {
+            content = (<div>Connecting...</div>);
         } else {
-            return <WaitForQuestion answerQuestion={this.answerQuestion}/>;
+            if (this.state.isAnswering) {
+                content = <AnswerQuestion waitForQuestion={this.waitForQuestion} q={this.state.q} a1={this.state.a1}
+                                          a2={this.state.a2} a3={this.state.a3} a4={this.state.a4}/>;
+            } else {
+                content = <WaitForQuestion answerQuestion={this.answerQuestion} socket={this.socket}/>;
+            }
         }
+        return (<div>
+            <h1>
+                Trivia Taker
+            </h1>
+            {content}
+        </div>);
     }
 }

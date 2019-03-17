@@ -4,15 +4,18 @@
   "description": "Trivia game using next.js and socket.io",
   "main": "index.js",
   "scripts": {
-    "dev": "next",
+    "dev": "node server",
     "build": "next build",
     "start": "next start"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.4",
     "next": "^8.0.3",
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0"
   }
 }
