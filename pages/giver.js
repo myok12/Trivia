@@ -135,8 +135,11 @@ export default class TriviaGiver extends Component {
     };
 
     componentWillMount() {
-        this.socket = io();
-        this.socket.emit('role', 'giver');
+        this.socket = io({
+            query: {
+                role: 'giver'
+            }
+        });
 
         this.socket.on('takers', (num) => {
             this.setState({takers: num});

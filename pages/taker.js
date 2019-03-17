@@ -87,8 +87,11 @@ export default class TriviaTaker extends Component {
     };
 
     componentWillMount() {
-        this.socket = io();
-        this.socket.emit('role', 'taker');
+        this.socket = io({
+            query: {
+                role: 'taker'
+            }
+        });
         this.socket.on('connect', () => {
             this.setState({connected: true});
         });

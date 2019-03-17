@@ -29,7 +29,25 @@ const takers = [];
 const givers = [];
 
 io.on("connect", socket => {
-    console.log("Received connection: " + socket.id);
+    console.log("Received a " + socket.handshake.query.role + " connection: " + socket.id);
+
+    if (socket.handshake.query.role !== "taker" && socket.handshake.query.role !== "giver") {
+        console.log("Unsupported role " + socket.handshake.query.role);
+    }
+
+    if (socket.handshake.query.role === 'taker') {
+        takers.push(socket);
+        givers.forEach(giver => giver.emit('takers', takers.length));
+    }
+
+    if (socket.handshake.query.role === 'giver') {
+        givers.push(socket);
+        if (givers.length > 1) {
+            console.log("Too many cooks in the kitchen");
+        }
+
+        socket.emit('takers', takers.length);
+    }
 
     socket.on('disconnect', (reason) => {
         const takerIdx = takers.indexOf(socket);
@@ -42,35 +60,14 @@ io.on("connect", socket => {
         }
     });
 
-    socket.on('role', data => {
-        if (data === 'taker') {
-            takers.push(socket);
-
-            givers.forEach(giver => giver.emit('takers', takers.length));
-        } else {
-            if (data === 'giver') {
-                givers.push(socket);
-                if (givers.length > 1 ) {
-                    throw "Too many cooks in the kitchen"
-                }
-
-                socket.emit('takers', takers.length);
-            } else {
-                throw "Unsupported role " + data;
-            }
-        }
-    });
-
     socket.on('trivia_question', data => {
         console.log('got trivia question ' + JSON.stringify(data));
-        socket.broadcast.emit('trivia_question', data);
-        // send to takers only
+        takers.forEach(taker => taker.emit('trivia_question', data));
     });
 
     socket.on('answer', data => {
         console.log('got answer ' + JSON.stringify(data));
-        socket.broadcast.emit('answer', data);
-        // send to givers only
+        givers.forEach(giver => giver.emit('answer', data));
     });
 });
 
